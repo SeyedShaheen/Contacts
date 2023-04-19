@@ -1,0 +1,9 @@
+org.qtproject.example.appContacts-java-0 /Users/fyi/Qt/6.4.3/android_armv7/src/android/java/res
+org.qtproject.example.appContacts-pngs-1 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/generated/res/pngs/debug
+org.qtproject.example.appContacts-resValues-2 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/generated/res/resValues/debug
+org.qtproject.example.appContacts-rs-3 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/generated/res/rs/debug
+org.qtproject.example.appContacts-mergeDebugResources-4 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
+org.qtproject.example.appContacts-mergeDebugResources-5 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
+org.qtproject.example.appContacts-merged_res-6 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/build/intermediates/merged_res/debug
+org.qtproject.example.appContacts-android-build-7 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/res
+org.qtproject.example.appContacts-debug-8 /Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/src/debug/res

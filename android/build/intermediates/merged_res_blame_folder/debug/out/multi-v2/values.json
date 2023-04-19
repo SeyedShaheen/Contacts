@@ -1,0 +1,45 @@
+{
+    "logs": [
+        {
+            "outputFile": "org.qtproject.example.appContacts-mergeDebugResources-4:/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/fyi/build-Contacts-Android_Qt_6_4_3_Clang_armeabi_v7a-Debug/android-build/res/values/libs.xml",
+                    "from": {
+                        "startLines": "4,20,8,26,24,27,25",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "152,744,211,978,879,1030,929",
+                        "endLines": "6,22,18,26,24,27,25",
+                        "endColumns": "12,12,12,50,48,47,47",
+                        "endOffsets": "203,871,736,1024,923,1073,972"
+                    },
+                    "to": {
+                        "startLines": "2,5,8,19,21,22,24",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,109,239,767,926,967,1105",
+                        "endLines": "4,7,18,19,21,22,24",
+                        "endColumns": "12,12,12,50,40,39,47",
+                        "endOffsets": "104,234,762,813,962,1002,1148"
+                    }
+                },
+                {
+                    "source": "/Users/fyi/Qt/6.4.3/android_armv7/src/android/java/res/values/strings.xml",
+                    "from": {
+                        "startLines": "3,4",
+                        "startColumns": "4,4",
+                        "startOffsets": "88,197",
+                        "endColumns": "107,97",
+                        "endOffsets": "191,290"
+                    },
+                    "to": {
+                        "startLines": "20,23",
+                        "startColumns": "4,4",
+                        "startOffsets": "818,1007",
+                        "endColumns": "107,97",
+                        "endOffsets": "921,1100"
+                    }
+                }
+            ]
+        }
+    ]
+}
