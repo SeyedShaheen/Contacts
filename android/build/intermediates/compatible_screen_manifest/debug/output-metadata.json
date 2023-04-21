@@ -4,7 +4,7 @@
     "type": "COMPATIBLE_SCREEN_MANIFEST",
     "kind": "Directory"
   },
-  "applicationId": "org.qtproject.example.appContacts",
+  "applicationId": "com.example.myappication",
   "variantName": "debug",
   "elements": []
 }

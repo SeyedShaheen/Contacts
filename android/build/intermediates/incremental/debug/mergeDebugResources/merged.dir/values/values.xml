@@ -18,9 +18,7 @@
         <item>armeabi-v7a;Qt6QmlWorkerScript_armeabi-v7a</item>
     </array>
     <string name="bundle_local_qt_libs">1</string>
-    <string name="fatal_error_msg">Your application encountered a fatal error and cannot continue.</string>
     <string name="static_init_classes"/>
     <string name="system_libs_prefix"/>
-    <string name="unsupported_android_version">This version of Android is not supported.</string>
     <string name="use_local_qt_libs">1</string>
 </resources>

@@ -1,0 +1,7 @@
+com.example.myappication:string/use_local_qt_libs = 0x7f020003
+com.example.myappication:string/system_libs_prefix = 0x7f020002
+com.example.myappication:string/static_init_classes = 0x7f020001
+com.example.myappication:array/bundled_libs = 0x7f010000
+com.example.myappication:string/bundle_local_qt_libs = 0x7f020000
+com.example.myappication:array/qt_libs = 0x7f010002
+com.example.myappication:array/load_local_libs = 0x7f010001

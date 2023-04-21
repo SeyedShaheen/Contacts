@@ -4,7 +4,7 @@
     "type": "PROCESSED_RES",
     "kind": "Directory"
   },
-  "applicationId": "org.qtproject.example.appContacts",
+  "applicationId": "com.example.myappication",
   "variantName": "debug",
   "elements": [
     {

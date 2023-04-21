@@ -8,16 +8,16 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
+    //QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
 
-    qmlRegisterType<contactModel>("contact", 1, 0, "ContactModel");
+    qmlRegisterType<ContactModel>("contact", 1, 0, "ContactModel");
 
-    javaClass.callMethod<void>("printSmth");
+    //javaClass.callMethod<void>("printSmth");
 
 
-    int numba = (int) javaClass.callMethod<jint>("rtrnSmth");
+    //int numba = (int) javaClass.callMethod<jint>("rtrnSmth");
 
-    qDebug()<< numba;
+    //qDebug()<< numba;
 
 
     QQmlApplicationEngine engine;

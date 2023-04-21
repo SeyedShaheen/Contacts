@@ -1,7 +1,16 @@
 package com.example.myappication;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.util.Log;
+import java.util.ArrayList;
 
 //import androidx.annotation.NonNull;
 import org.qtproject.qt.android.bindings.QtActivity;
@@ -13,6 +22,10 @@ public class MainActivity extends QtActivity {
 
 
     private static final int CONTACTS_PERMISSION_REQUEST_CODE = 1;
+    private static final String[] REQUIRED_PERMISSIONS = {
+            Manifest.permission.WRITE_CONTACTS,
+            Manifest.permission.READ_CONTACTS
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -22,7 +35,7 @@ public class MainActivity extends QtActivity {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_CONTACTS)
 //                    != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_CONTACTS},
+//                requestPermissions(this, new String[]{Manifest.permission.WRITE_CONTACTS},
 //                        CONTACTS_PERMISSION_REQUEST_CODE);
 //            }
 //        }
@@ -47,21 +60,7 @@ public class MainActivity extends QtActivity {
 //        }
 //    }
 
-//    private void readContacts(){
-//        Cursor cursor = getContentResolver().query(
-//                ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-//                null, null, null);
 
-//        if (cursor != null) {
-//            while (cursor.moveToNext()) {
-//                @SuppressLint("Range") String name = ((Cursor) cursor).getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-//                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-//
-//                Log.i("Contact", "Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
-//            }
-//            cursor.close();
-//        }
-//    }
 
 //    private void createContacts() {
 //        ContentResolver contentResolver = getContentResolver();
@@ -92,6 +91,37 @@ public class MainActivity extends QtActivity {
 //        }
 //    }
 }
+    private ArrayList<String> readContacts(){
+
+        ArrayList<String> contacts = new ArrayList<>();
+
+        if (checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            // Request the required permission if it hasn't been granted yet
+            requestPermissions(REQUIRED_PERMISSIONS, 1);
+        }
+
+
+
+
+        Cursor cursor = getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                null, null, null);
+
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range") String name = ((Cursor) cursor).getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+
+                contacts.add(name + ":" + phoneNumber);
+
+                //Log.d("Contact", "Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+            }
+            cursor.close();
+        }
+        Log.d("", contacts.get(0));
+        return contacts;
+    }
+
     public void printSmth(){
         Log.d("print", "SOMSETHING!!!");
     }

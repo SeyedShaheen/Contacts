@@ -1,67 +1,73 @@
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QJniObject>
 #include "contactmodel.h"
 
-contactModel::contactModel(QObject *parent)
-    : QAbstractItemModel(parent)
+QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
+    int numba = (int) javaClass.callMethod<jint>("rtrnSmth");
+    QJniObject arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
+
+ContactModel::ContactModel(QObject *parent)
+    : QAbstractListModel(parent)
 {
 }
 
-QVariant contactModel::headerData(int section, Qt::Orientation orientation, int role) const
+int ContactModel::rowCount(const QModelIndex &parent) const
 {
-    // FIXME: Implement me!
-}
-
-QModelIndex contactModel::index(int row, int column, const QModelIndex &parent) const
-{
-    // FIXME: Implement me!
-}
-
-QModelIndex contactModel::parent(const QModelIndex &index) const
-{
-    // FIXME: Implement me!
-}
-
-int contactModel::rowCount(const QModelIndex &parent) const
-{
-    if (!parent.isValid())
+    // For list models only the root node (an invalid parent) should return the list's size. For all
+    // other (valid) parents, rowCount() should return 0 so that it does not become a tree model.
+    if (parent.isValid())
         return 0;
 
     // FIXME: Implement me!
+    return (int)arrayList.callMethod<jint>("size","()I");
 }
 
-int contactModel::columnCount(const QModelIndex &parent) const
-{
-    if (!parent.isValid())
-        return 0;
-
-    // FIXME: Implement me!
-}
-
-bool contactModel::hasChildren(const QModelIndex &parent) const
-{
-    // FIXME: Implement me!
-}
-
-bool contactModel::canFetchMore(const QModelIndex &parent) const
-{
-    // FIXME: Implement me!
-    return false;
-}
-
-void contactModel::fetchMore(const QModelIndex &parent)
-{
-    // FIXME: Implement me!
-}
-
-QVariant contactModel::data(const QModelIndex &index, int role) const
+QVariant ContactModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
 
     // FIXME: Implement me!
+    //javaClass.callMethod<int>("readContacts");
+    QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", index);
+    QString qstring = element.toString();
+    QStringList contactInfo = qstring.split(":");
+
+    qDebug()<< qstring;
+
+    switch (role){
+    case Name:
+        return QVariant((contactInfo[0]));
+    case Number:
+        return QVariant((contactInfo[1]));
+    }
     return QVariant();
 }
 
-QHash<int, QByteArray> contactModel::roleNames() const
+bool ContactModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
-
+    if (data(index, role) != value) {
+        // FIXME: Implement me!
+        emit dataChanged(index, index, {role});
+        return true;
+    }
+    return false;
 }
+
+Qt::ItemFlags ContactModel::flags(const QModelIndex &index) const
+{
+    if (!index.isValid())
+        return Qt::NoItemFlags;
+
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable; // FIXME: Implement me!
+}
+
+QHash<int, QByteArray> ContactModel::roleNames() const
+{
+    QHash<int,QByteArray> contacts;
+    contacts[Name] = "name";
+    contacts[Number] = "number";
+    return contacts;
+}
+
