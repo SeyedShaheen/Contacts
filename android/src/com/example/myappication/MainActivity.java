@@ -118,7 +118,7 @@ public class MainActivity extends QtActivity {
             }
             cursor.close();
         }
-        Log.d("", contacts.get(0));
+        //Log.d("", contacts.get(0));
         return contacts;
     }
 
