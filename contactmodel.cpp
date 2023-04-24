@@ -3,13 +3,13 @@
 #include <QJniObject>
 #include "contactmodel.h"
 
-QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
-    int numba = (int) javaClass.callMethod<jint>("rtrnSmth");
-    QJniObject arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
+
 
 ContactModel::ContactModel(QObject *parent)
     : QAbstractListModel(parent)
 {
+    QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
+    arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
 }
 
 int ContactModel::rowCount(const QModelIndex &parent) const
@@ -29,7 +29,6 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
         return QVariant();
 
     // FIXME: Implement me!
-    //javaClass.callMethod<int>("readContacts");
     QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", index);
     QString qstring = element.toString();
     QStringList contactInfo = qstring.split(":");
@@ -42,7 +41,7 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
     case Number:
         return QVariant((contactInfo[1]));
     }
-    return QVariant();
+     return QVariant();
 }
 
 bool ContactModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -69,5 +68,18 @@ QHash<int, QByteArray> ContactModel::roleNames() const
     contacts[Name] = "name";
     contacts[Number] = "number";
     return contacts;
+}
+
+QJniObject ContactModel::getArrayList() const
+{
+    return arrayList;
+}
+
+void ContactModel::setArrayList(const QJniObject &newArrayList)
+{
+    if (arrayList == newArrayList)
+        return;
+    arrayList = newArrayList;
+    emit arrayListChanged();
 }
 

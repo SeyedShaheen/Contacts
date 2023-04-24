@@ -3,6 +3,7 @@
 #define CONTACTMODEL_H
 
 #include <QAbstractListModel>
+#include <qjniobject.h>
 
 
 
@@ -31,7 +32,15 @@ public:
 
     virtual QHash<int, QByteArray> roleNames() const override;
 
+    QJniObject getArrayList() const;
+    void setArrayList(const QJniObject &newArrayList);
+
+signals:
+    void arrayListChanged();
+
 private:
+    QJniObject arrayList;
+    Q_PROPERTY(QJniObject arrayList READ getArrayList WRITE setArrayList NOTIFY arrayListChanged)
 };
 
 #endif // CONTACTMODEL_H
