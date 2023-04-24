@@ -8,8 +8,20 @@
 ContactModel::ContactModel(QObject *parent)
     : QAbstractListModel(parent)
 {
-    QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
-    arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
+
+}
+
+QString ContactModel::getUpdateValue() const
+{
+    return updateValue;
+}
+
+void ContactModel::setUpdateValue(const QString &newUpdateValue)
+{
+    if (updateValue == newUpdateValue)
+        return;
+    updateValue = newUpdateValue;
+    emit updateValueChanged();
 }
 
 int ContactModel::rowCount(const QModelIndex &parent) const
@@ -23,6 +35,34 @@ int ContactModel::rowCount(const QModelIndex &parent) const
     return (int)arrayList.callMethod<jint>("size","()I");
 }
 
+extern "C"{JNIEXPORT void JNICALL
+Java_com_example_myappication_MainActivity_update(JNIEnv *env, jobject, jobject updated){
+
+    QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
+    QJniObject arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
+    int size = (int)arrayList.callMethod<jint>("size","()I");
+
+//    const char* cStr = env->GetStringUTFChars(updated, nullptr);
+//    QString qStr = QString::fromUtf8(cStr);
+//    env->ReleaseStringUTFChars(updated, cStr);
+    jint len = env->CallIntMethod(updated, size);
+    QStringList updatedList;
+
+
+    for (jint i = 0; i < len; ++i) {
+        jobject javaString = env->CallObjectMethod(arrList, getMethod, i);
+        const char* rawString = env->GetStringUTFChars((jstring)javaString, nullptr);
+        updatedList.append(QString::fromUtf8(rawString));
+        env->ReleaseStringUTFChars((jstring)javaString, rawString);
+        env->DeleteLocalRef(javaString);
+    }
+
+    qDebug() << "-----------------------------";
+    qDebug() << updatedList.at(1);
+
+}
+}
+
 QVariant ContactModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -32,8 +72,10 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
     QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", index);
     QString qstring = element.toString();
     QStringList contactInfo = qstring.split(":");
+    qDebug()<< (int)arrayList.callMethod<jint>("size","()I");
 
-    qDebug()<< qstring;
+
+    //qDebug()<< qstring;
 
     switch (role){
     case Name:

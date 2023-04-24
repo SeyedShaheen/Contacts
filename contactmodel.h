@@ -10,6 +10,7 @@
 class ContactModel : public QAbstractListModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString updateValue READ getUpdateValue WRITE setUpdateValue NOTIFY updateValueChanged)
 
 public:
     explicit ContactModel(QObject *parent = nullptr);
@@ -18,6 +19,8 @@ public:
         Name,
         Number
     };
+
+    QString updateValue;
 
     // Basic functionality:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -35,8 +38,13 @@ public:
     QJniObject getArrayList() const;
     void setArrayList(const QJniObject &newArrayList);
 
+    QString getUpdateValue() const;
+    void setUpdateValue(const QString &newUpdateValue);
+
 signals:
     void arrayListChanged();
+
+    void updateValueChanged();
 
 private:
     QJniObject arrayList;
