@@ -1,6 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QJniObject>
+#include <jni.h>
 #include "contactmodel.h"
 
 
@@ -10,6 +11,44 @@ ContactModel::ContactModel(QObject *parent)
 {
     QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
     arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
+    javaClass.callMethod<void>("setPointer", "(J)V", (long long) (ContactModel*) this);
+}
+
+void ContactModel::updateContactList(const QStringList &updatedList)
+{
+    beginResetModel();
+    // Clear the current arrayList
+    arrayList.callMethod<void>("clear");
+    // Insert the updated list into the arrayList
+    for (const QString &contact : updatedList) {
+        QJniObject javaString = QJniObject::fromString(contact);
+        arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object<jobject>());
+    }
+    endResetModel();
+}
+
+extern "C" {
+JNIEXPORT void JNICALL
+Java_com_example_myappication_MainActivity_update(JNIEnv *env, jobject, jobject updated, jlong ptr) {
+
+    QJniObject arrList = updated;
+    jlong len = arrList.callMethod<jint>("size", "()I");
+    QStringList updatedList;
+
+
+    for (jint i = 0; i < len; ++i) {
+        QJniObject element = arrList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        QString contact = QJniObject(element).toString();
+        updatedList.append(contact);
+        qDebug() << element.toString();
+    }
+
+    auto contactModel = reinterpret_cast<ContactModel*>(static_cast<long long>(ptr));
+    if (contactModel) {
+        contactModel->updateContactList(updatedList);
+    }
+
+}
 }
 
 int ContactModel::rowCount(const QModelIndex &parent) const
