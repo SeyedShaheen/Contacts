@@ -16,15 +16,64 @@ ContactModel::ContactModel(QObject *parent)
 
 void ContactModel::updateContactList(const QStringList &updatedList)
 {
-    beginResetModel();
-    // Clear the current arrayList
-    arrayList.callMethod<void>("clear");
-    // Insert the updated list into the arrayList
+
+    //Remove Items
+    int originalListSize = rowCount(QModelIndex());
+    QList<int> indicesToRemove;
+
+    for (int i = 0; i < originalListSize; ++i) {
+        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        QString listContact = QJniObject(element).toString();
+
+        if (!updatedList.contains(listContact)) {
+            indicesToRemove.append(i);
+        }
+    }
+
+    for (int i = indicesToRemove.count() - 1; i >= 0; --i) {
+        // Remove contact from the 'arrayList'
+        beginRemoveRows(QModelIndex(), indicesToRemove[i], indicesToRemove[i]);
+        arrayList.callMethod<jobject>("remove", "(I)Ljava/lang/Object;", indicesToRemove[i]);
+        endRemoveRows();
+    }
+
+
+    //Update or Add Items
     for (const QString &contact : updatedList) {
         QJniObject javaString = QJniObject::fromString(contact);
-        arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object<jobject>());
+        jboolean exists = arrayList.callMethod<jboolean>("contains", "(Ljava/lang/Object;)Z", javaString.object<jobject>());
+
+        if (!exists) {
+            // Get the index to be updated
+            int indexToUpdate = -1;
+            int listSize = rowCount(QModelIndex());
+
+            for (int i = 0; i < listSize; ++i) {
+                QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+                QString listContact = QJniObject(element).toString();
+                if (listContact.startsWith(contact.split(":").first())) {
+                    indexToUpdate = i;
+                    break;
+                }
+            }
+
+            // Check if an update is needed
+            if (indexToUpdate != -1) {
+                arrayList.callMethod<jobject>("set", "(ILjava/lang/Object;)Ljava/lang/Object;", indexToUpdate, javaString.object<jobject>());
+
+                // Emit the dataChanged signal for the updated index
+                QModelIndex index = createIndex(indexToUpdate, 0);
+                emit dataChanged(index, index);
+            }
+            // Else it is an addition
+            else {
+                int newRow = rowCount(QModelIndex());
+                beginInsertRows(QModelIndex(), newRow, newRow);
+                arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object<jobject>());
+                endInsertRows();
+            }
+        }
     }
-    endResetModel();
 }
 
 extern "C" {
