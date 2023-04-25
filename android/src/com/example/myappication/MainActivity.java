@@ -9,10 +9,12 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.widget.Toast;
 import android.database.ContentObserver;
 
 import java.util.ArrayList;
+import java.util.List;
 
 //import androidx.annotation.NonNull;
 import org.qtproject.qt.android.bindings.QtActivity;
@@ -29,6 +31,7 @@ public class MainActivity extends QtActivity {
     };
     private contactsContentObserver contactsContentObserver;
     public long pointer;
+    public ArrayList<String> initialContacts;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,6 +44,9 @@ public class MainActivity extends QtActivity {
         Handler handler = new Handler(getApplicationContext().getMainLooper());
         contactsContentObserver = new contactsContentObserver(handler, this);
         getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsContentObserver);
+        initialContacts = readContacts();
+        Log.d("","--------------->>"+readContacts().size());
+        Log.d("","--------------->>"+initialContacts.size());
 }
 
 void setPointer(long ptr){
@@ -81,9 +87,21 @@ public native void update(ArrayList<String> updatedContacts, long ptr);
         return contacts;
     }
 
+    public static ArrayList<String> getDifference(ArrayList<String> list1, ArrayList<String> list2) {
+        ArrayList<String> difference = new ArrayList<>(list1);
+
+        // Remove all items from difference list which are also in list2
+        difference.removeAll(list2);
+        // Now difference list only contains elements which are unique to list1
+        return difference;
+    }
+
     public void updateContacts() {
         Toast.makeText(this, readContacts().get(1).toString(), Toast.LENGTH_SHORT).show();
-
+        ArrayList<String> updatedContacts = getDifference(readContacts(), initialContacts);
+        Log.d("","--------------->"+updatedContacts.size());
+        Log.d("","--------------->"+readContacts().size());
+        Log.d("","--------------->"+initialContacts.size());
         update(readContacts(), pointer);
     }
 

@@ -40,7 +40,7 @@ Java_com_example_myappication_MainActivity_update(JNIEnv *env, jobject, jobject 
         QJniObject element = arrList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
         QString contact = QJniObject(element).toString();
         updatedList.append(contact);
-        qDebug() << element.toString();
+        //qDebug() << element.toString();
     }
 
     auto contactModel = reinterpret_cast<ContactModel*>(static_cast<long long>(ptr));
@@ -72,7 +72,7 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
     QString qstring = element.toString();
     QStringList contactInfo = qstring.split(":");
 
-    qDebug()<< qstring;
+    //qDebug()<< qstring;
 
     switch (role){
     case Name:
