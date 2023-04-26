@@ -14,42 +14,45 @@ ContactModel::ContactModel(QObject *parent)
     javaClass.callMethod<void>("setPointer", "(J)V", (long long) (ContactModel*) this);
 }
 
-void ContactModel::updateContactList(const QStringList &updatedList)
+void ContactModel::addNewContact(int index, QString value)
 {
-    beginResetModel();
-    // Clear the current arrayList
-    arrayList.callMethod<void>("clear");
-    // Insert the updated list into the arrayList
-    for (const QString &contact : updatedList) {
-        QJniObject javaString = QJniObject::fromString(contact);
-        arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object<jobject>());
-    }
-    endResetModel();
+    beginInsertRows(QModelIndex(), index, index);
+    QJniObject javaString = QJniObject::fromString(value);
+    //arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object());
+    arrayList.callMethod<jboolean>("add","(ILjava/lang/Object;)Z",2,javaString.object());
+    endInsertRows();
+}
+
+void ContactModel::removeContact(int index)
+{
+    beginRemoveRows(QModelIndex(), index,index);
+    arrayList.callObjectMethod("remove", "(I)Ljava/lang/Object;", index);
+    endRemoveRows();
 }
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_example_myappication_MainActivity_update(JNIEnv *env, jobject, jobject updated, jlong ptr) {
+Java_com_example_myappication_MainActivity_update(JNIEnv *env, jobject, jlong ptr, jstring elem, jint index) {
 
-    QJniObject arrList = updated;
-    jlong len = arrList.callMethod<jint>("size", "()I");
-    QStringList updatedList;
-
-
-    for (jint i = 0; i < len; ++i) {
-        QJniObject element = arrList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
-        QString contact = QJniObject(element).toString();
-        updatedList.append(contact);
-        //qDebug() << element.toString();
+    const char* chars = env->GetStringUTFChars(elem, nullptr);
+    if (chars){
+        QString qStr = QString::fromUtf8(chars);
+        env->ReleaseStringUTFChars(elem, chars);
+        ContactModel* model = reinterpret_cast<ContactModel*>(ptr);
+        model->addNewContact(index,qStr);
     }
-
-    auto contactModel = reinterpret_cast<ContactModel*>(static_cast<long long>(ptr));
-    if (contactModel) {
-        contactModel->updateContactList(updatedList);
-    }
-
 }
 }
+
+extern "C" {
+JNIEXPORT void JNICALL
+Java_com_example_myappication_MainActivity_removeFromModel(JNIEnv *env, jobject, jlong ptr, jint index) {
+    qDebug() << index;
+    ContactModel* model = reinterpret_cast<ContactModel*>(ptr);
+    model->removeContact(index);
+}
+}
+
 
 int ContactModel::rowCount(const QModelIndex &parent) const
 {

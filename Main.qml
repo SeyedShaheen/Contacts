@@ -16,9 +16,9 @@ Window {
         anchors{top: topbar.bottom; bottom: parent.bottom; left: parent.left; right: parent.right; topMargin: 10}
         spacing: 10
         model: ContactModel{}
-        section.property: "name"
-        section.criteria: ViewSection.FirstCharacter
-        section.delegate: Text{text: section; color: "white"; padding: 10; font.pointSize: 14}
+//        section.property: "name"
+//        section.criteria: ViewSection.FirstCharacter
+//        section.delegate: Text{text: section; color: "white"; padding: 10; font.pointSize: 14}
         delegate:
             Rectangle{
             anchors{ left: parent.left; right: parent.right; margins: 10;}

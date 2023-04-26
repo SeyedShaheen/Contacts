@@ -19,6 +19,9 @@ public:
         Number
     };
 
+    void addNewContact(int, QString);
+    void removeContact(int);
+
     void updateContactList(const QStringList &updatedList);
 
     // Basic functionality:

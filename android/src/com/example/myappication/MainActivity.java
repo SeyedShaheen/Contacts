@@ -53,9 +53,9 @@ void setPointer(long ptr){
         pointer = ptr;
 }
 
-public native void update(ArrayList<String> updatedContacts, long ptr);
+public native void update(long ptr, String updatedContacts, int index);
+public native void removeFromModel(long ptr, int index);
 
-    @Override
     protected void onDestroy() {
         super.onDestroy();
 
@@ -87,22 +87,29 @@ public native void update(ArrayList<String> updatedContacts, long ptr);
         return contacts;
     }
 
-    public static ArrayList<String> getDifference(ArrayList<String> list1, ArrayList<String> list2) {
-        ArrayList<String> difference = new ArrayList<>(list1);
 
-        // Remove all items from difference list which are also in list2
-        difference.removeAll(list2);
-        // Now difference list only contains elements which are unique to list1
-        return difference;
-    }
+    public void updateContacts(ArrayList<String> updatedList) {
+        for (int i = 0; i< updatedList.size(); i++) {
+                    String element = updatedList.get(i);
+                    if (!initialContacts.contains(element)) {
+                        Log.d("New element:---> ",element);
+                        Log.d("New elements index :---> ",i+"");
+                        update(pointer, element, i);
+                        initialContacts.add(i,element);
+                    }
+                }
 
-    public void updateContacts() {
-        Toast.makeText(this, readContacts().get(1).toString(), Toast.LENGTH_SHORT).show();
-        ArrayList<String> updatedContacts = getDifference(readContacts(), initialContacts);
-        Log.d("","--------------->"+updatedContacts.size());
-        Log.d("","--------------->"+readContacts().size());
-        Log.d("","--------------->"+initialContacts.size());
-        update(readContacts(), pointer);
+                for (int i = 0; i < initialContacts.size(); i++) {
+                    String element = initialContacts.get(i);
+                    if (!updatedList.contains(element)) {
+                        Log.d("Removed element:---> ",element);
+                        Log.d("Removed elements index :---> ",i+"");
+                        removeFromModel(pointer,i);
+                        initialContacts.remove(i);
+                    }
+                }
+
+        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -129,13 +136,19 @@ public native void update(ArrayList<String> updatedContacts, long ptr);
         @Override
         public void onChange(boolean selfChange){
             super.onChange(selfChange);
-            updateContacts();
+            long tStart = System.currentTimeMillis();
+            ArrayList<String> newArrList = readContacts();
+            updateContacts(newArrList);
+            long tEnd = System.currentTimeMillis();
+            long tDelta = tEnd - tStart;
+            Log.d("Time elapsed in milliseconds for change: ", tDelta+"");
         }
 
         @Override
         public void onChange(boolean selfChange, Uri uri){
             super.onChange(selfChange, uri);
-            updateContacts();
+            ArrayList<String> newArrList = readContacts();
+            updateContacts(newArrList);
         }
 
     }
