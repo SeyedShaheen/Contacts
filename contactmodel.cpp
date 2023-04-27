@@ -16,11 +16,24 @@ ContactModel::ContactModel(QObject *parent)
 
 void ContactModel::addNewContact(int index, QString value)
 {
-    beginInsertRows(QModelIndex(), index, index);
     QJniObject javaString = QJniObject::fromString(value);
-    //arrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object());
-    arrayList.callMethod<jboolean>("add","(ILjava/lang/Object;)Z",2,javaString.object());
-    endInsertRows();
+
+    // create a new ArrayList and add elements in desired order
+    QJniObject newArrayList("java/util/ArrayList");
+    for (int i = 0; i < index; i++) {
+        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", element.object());
+    }
+    newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object());
+    for (int i = index; i < arrayList.callMethod<jint>("size","()I"); i++) {
+        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", element.object());
+    }
+
+    // replace existing list with new list
+    beginResetModel();
+    arrayList = newArrayList;
+    endResetModel();
 }
 
 void ContactModel::removeContact(int index)

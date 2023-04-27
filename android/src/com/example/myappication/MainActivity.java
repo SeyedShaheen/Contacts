@@ -45,8 +45,8 @@ public class MainActivity extends QtActivity {
         contactsContentObserver = new contactsContentObserver(handler, this);
         getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsContentObserver);
         initialContacts = readContacts();
-        Log.d("","--------------->>"+readContacts().size());
-        Log.d("","--------------->>"+initialContacts.size());
+//        Log.d("","--------------->>"+readContacts().size());
+//        Log.d("","--------------->>"+initialContacts.size());
 }
 
 void setPointer(long ptr){
@@ -66,6 +66,7 @@ public native void removeFromModel(long ptr, int index);
     }
 
     public ArrayList<String> readContacts(){
+        long tStart = System.currentTimeMillis();
 
         ArrayList<String> contacts = new ArrayList<>();
         Cursor cursor = getContentResolver().query(
@@ -83,7 +84,9 @@ public native void removeFromModel(long ptr, int index);
             }
             cursor.close();
         }
-        //Log.d("", contacts.get(0));
+        long tEnd = System.currentTimeMillis();
+        long tDelta = tEnd - tStart;
+        Log.d("---------> Read Duration: ", tDelta+"");
         return contacts;
     }
 
@@ -92,8 +95,8 @@ public native void removeFromModel(long ptr, int index);
         for (int i = 0; i< updatedList.size(); i++) {
                     String element = updatedList.get(i);
                     if (!initialContacts.contains(element)) {
-                        Log.d("New element:---> ",element);
-                        Log.d("New elements index :---> ",i+"");
+//                        Log.d("New element:---> ",element);
+//                        Log.d("New elements index :---> ",i+"");
                         update(pointer, element, i);
                         initialContacts.add(i,element);
                     }
@@ -102,8 +105,8 @@ public native void removeFromModel(long ptr, int index);
                 for (int i = 0; i < initialContacts.size(); i++) {
                     String element = initialContacts.get(i);
                     if (!updatedList.contains(element)) {
-                        Log.d("Removed element:---> ",element);
-                        Log.d("Removed elements index :---> ",i+"");
+//                        Log.d("Removed element:---> ",element);
+//                        Log.d("Removed elements index :---> ",i+"");
                         removeFromModel(pointer,i);
                         initialContacts.remove(i);
                     }
@@ -141,7 +144,7 @@ public native void removeFromModel(long ptr, int index);
             updateContacts(newArrList);
             long tEnd = System.currentTimeMillis();
             long tDelta = tEnd - tStart;
-            Log.d("Time elapsed in milliseconds for change: ", tDelta+"");
+            Log.d("---------> Update Duration: ", tDelta+"");
         }
 
         @Override
