@@ -2,6 +2,7 @@ package com.example.myappication;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -32,6 +33,7 @@ public class MainActivity extends QtActivity {
     private contactsContentObserver contactsContentObserver;
     public long pointer;
     public ArrayList<String> initialContacts;
+    public long loadedTimestamp;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,6 +86,7 @@ public native void removeFromModel(long ptr, int index);
             }
             cursor.close();
         }
+        loadedTimestamp = System.currentTimeMillis();
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
         Log.d("---------> Read Duration: ", tDelta+"");
@@ -136,23 +139,62 @@ public native void removeFromModel(long ptr, int index);
             super(handler);
             this.mainActivity = mainActivity;
         }
-        @Override
-        public void onChange(boolean selfChange){
-            super.onChange(selfChange);
-            long tStart = System.currentTimeMillis();
-            ArrayList<String> newArrList = readContacts();
-            updateContacts(newArrList);
-            long tEnd = System.currentTimeMillis();
-            long tDelta = tEnd - tStart;
-            Log.d("---------> Update Duration: ", tDelta+"");
-        }
+//        @Override
+//        public void onChange(boolean selfChange){
+//            super.onChange(selfChange);
+//            long tStart = System.currentTimeMillis();
+//            ArrayList<String> newArrList = readContacts();
+//            updateContacts(newArrList);
+//            long tEnd = System.currentTimeMillis();
+//            long tDelta = tEnd - tStart;
+//            Log.d("---------> Update Duration: ", tDelta+"");
+//        }
 
         @Override
-        public void onChange(boolean selfChange, Uri uri){
-            super.onChange(selfChange, uri);
-            ArrayList<String> newArrList = readContacts();
-            updateContacts(newArrList);
+        public void onChange(boolean selfChange, Uri uri, int flags) {
+            Log.d("", "onChange Called");
+
+            long lastUpdateTimestamp = loadedTimestamp; // the timestamp of the last update
+            String selection = ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP + " > ?";
+            String[] selectionArgs = new String[]{ String.valueOf(lastUpdateTimestamp) };
+            Cursor cursor = getContentResolver().query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    new String[]{
+                            ContactsContract.Data.CONTACT_ID,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER,
+                            ContactsContract.Contacts.DISPLAY_NAME
+                    },
+                    selection,
+                    selectionArgs,
+                    null
+            );
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    // process the updated contact
+                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                    @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    Log.d("Updated Contacts", "Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+                } while (cursor.moveToNext());
+                cursor.close();
+                loadedTimestamp = System.currentTimeMillis();
+            }
+            else {
+                // the cursor is empty, which means a contact was deleted
+                long contactId = ContentUris.parseId(uri);
+                Log.d("Deleted Contact", "Contact ID: " + contactId);
+
+                Log.d("Updated Contacts", "DELETED");
+                // ...
+            }
         }
+
+
+//        @Override
+//        public void onChange(boolean selfChange, Uri uri){
+//            super.onChange(selfChange, uri);
+//            ArrayList<String> newArrList = readContacts();
+//            updateContacts(newArrList);
+//        }
 
     }
 }
