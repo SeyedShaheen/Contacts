@@ -67,53 +67,66 @@ public native void removeFromModel(long ptr, int index);
         }
     }
 
+    public class Contact {
+        private String contactId;
+        private String name;
+        private String phoneNumber;
+
+        public Contact(String contactId, String name, String phoneNumber) {
+            this.contactId = contactId;
+            this.name = name;
+            this.phoneNumber = phoneNumber;
+        }
+    }
+
     public ArrayList<String> readContacts(){
         long tStart = System.currentTimeMillis();
 
         ArrayList<String> contacts = new ArrayList<>();
+        ArrayList<Contact> contactDetails = new ArrayList<>();
         Cursor cursor = getContentResolver().query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
                 null, null, null);
 
+        int i = 0;
         if (cursor != null) {
             while (cursor.moveToNext()) {
+                @SuppressLint("Range") String contactId = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
                 @SuppressLint("Range") String name = ((Cursor) cursor).getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-
-                contacts.add(name + ":" + phoneNumber);
-
-                //Log.d("Contact", "Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+                contacts.add(contactId + ":" + name + ":" + phoneNumber);
+                contactDetails.add(new Contact(contactId,name,phoneNumber));
             }
             cursor.close();
         }
         loadedTimestamp = System.currentTimeMillis();
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
+        Log.d("Contact",  contactDetails.size()+ " : " + contactDetails.get(1).name + " " + contactDetails.get(1).phoneNumber);
         Log.d("---------> Read Duration: ", tDelta+"");
         return contacts;
     }
 
 
-    public void updateContacts(ArrayList<String> updatedList) {
-        for (int i = 0; i< updatedList.size(); i++) {
-                    String element = updatedList.get(i);
-                    if (!initialContacts.contains(element)) {
-//                        Log.d("New element:---> ",element);
-//                        Log.d("New elements index :---> ",i+"");
-                        update(pointer, element, i);
-                        initialContacts.add(i,element);
-                    }
-                }
+    public void updateContacts(ArrayList<Contact> updatedList) {
 
-                for (int i = 0; i < initialContacts.size(); i++) {
-                    String element = initialContacts.get(i);
-                    if (!updatedList.contains(element)) {
+        Log.d("", "updated list size: " + updatedList.size());
+
+        for (int i = 0; i < updatedList.size(); i++){
+
+        }
+
+
+//                for (int i = 0; i < initialContacts.size(); i++) {
+//                    String element = initialContacts.get(i);
+//                    if (!updatedList.contains(element)) {
+//                        int itemIndex = initialContacts.indexOf(element);
 //                        Log.d("Removed element:---> ",element);
-//                        Log.d("Removed elements index :---> ",i+"");
-                        removeFromModel(pointer,i);
-                        initialContacts.remove(i);
-                    }
-                }
+//                        Log.d("Removed elements index :---> ",itemIndex+"");
+//                        removeFromModel(pointer,i);
+//                        initialContacts.remove(i);
+//                    }
+//                }
 
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
@@ -152,8 +165,8 @@ public native void removeFromModel(long ptr, int index);
 
         @Override
         public void onChange(boolean selfChange, Uri uri, int flags) {
+            ArrayList<Contact> newArrList = new ArrayList<>();
             Log.d("", "onChange Called");
-
             long lastUpdateTimestamp = loadedTimestamp; // the timestamp of the last update
             String selection = ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP + " > ?";
             String[] selectionArgs = new String[]{ String.valueOf(lastUpdateTimestamp) };
@@ -171,12 +184,13 @@ public native void removeFromModel(long ptr, int index);
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     // process the updated contact
+                    @SuppressLint("Range") String contactId = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
                     @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                     @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    Log.d("Updated Contacts", "Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+                    newArrList.add(new Contact(contactId, name, phoneNumber));
+                    Log.d("Updated Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
                 } while (cursor.moveToNext());
                 cursor.close();
-                loadedTimestamp = System.currentTimeMillis();
             }
             else {
                 // the cursor is empty, which means a contact was deleted
@@ -186,6 +200,9 @@ public native void removeFromModel(long ptr, int index);
                 Log.d("Updated Contacts", "DELETED");
                 // ...
             }
+            loadedTimestamp = System.currentTimeMillis();
+            Log.d("", "" + newArrList.size());
+            updateContacts(newArrList);
         }
 
 
