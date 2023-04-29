@@ -16,26 +16,11 @@ ContactModel::ContactModel(QObject *parent)
 
 void ContactModel::addNewContact(int index, QString value)
 {
+    beginInsertRows(QModelIndex(), index, index);
     QJniObject javaString = QJniObject::fromString(value);
-
-    // create a new ArrayList and add elements in desired order
-    QJniObject newArrayList("java/util/ArrayList");
-    for (int i = 0; i < index; i++) {
-        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
-        newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", element.object());
-    }
-    newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", javaString.object());
-    for (int i = index; i < arrayList.callMethod<jint>("size","()I"); i++) {
-        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
-        newArrayList.callMethod<jboolean>("add", "(Ljava/lang/Object;)Z", element.object());
-    }
-
-    // replace existing list with new list
-    beginResetModel();
-    arrayList = newArrayList;
-    endResetModel();
+    arrayList.callMethod<void>("add", "(ILjava/lang/Object;)V", 0, javaString.object());
+    endInsertRows();
 }
-
 
 void ContactModel::removeContact(int index)
 {
@@ -74,7 +59,6 @@ int ContactModel::rowCount(const QModelIndex &parent) const
     // other (valid) parents, rowCount() should return 0 so that it does not become a tree model.
     if (parent.isValid())
         return 0;
-
     // FIXME: Implement me!
     return (int)arrayList.callMethod<jint>("size","()I");
 }
@@ -93,9 +77,9 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
 
     switch (role){
     case Name:
-        return QVariant((contactInfo[0]));
-    case Number:
         return QVariant((contactInfo[1]));
+    case Number:
+        return QVariant((contactInfo[2]));
     }
      return QVariant();
 }
