@@ -156,6 +156,11 @@ public native void removeFromModel(long ptr, int index);
         }
 
         @Override
+        public void onChange(boolean selfChange){
+
+        }
+
+        @Override
         public void onChange(boolean selfChange, Uri uri, int flags) {
             ArrayList<String> newArrList = new ArrayList<>();
             Log.d("", "onChange Called");
@@ -184,33 +189,34 @@ public native void removeFromModel(long ptr, int index);
                 } while (cursor.moveToNext());
                 cursor.close();
             }
-            else {
-                String[] projection = new String[]{
-                        ContactsContract.DeletedContacts.CONTACT_ID,
-                        ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP
-                };
 
-                String delSelection = ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
-                String[] delSelectionArgs = new String[]{ String.valueOf(lastUpdateTimestamp) };
-                Cursor deleteCursor = getContentResolver().query(
-                        ContactsContract.DeletedContacts.CONTENT_URI,
-                        projection,
-                        delSelection,
-                        delSelectionArgs,
-                        null
-                );
-                if (deleteCursor != null && deleteCursor.moveToFirst()) {
-                    do {
-                        // process the deleted contact
-                        @SuppressLint("Range") String contactId = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_ID));
-                        @SuppressLint("Range") long deletedTimestamp = deleteCursor.getLong(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP));
-                        Log.d("Deleted Contacts", "ContactID: "+ contactId + ", Deleted Timestamp: " + deletedTimestamp);
-                    } while (deleteCursor.moveToNext());
-                    deleteCursor.close();
-                }
+            Log.d("", "Deleted");
+            String[] projection = new String[]{
+                    ContactsContract.DeletedContacts.CONTACT_ID,
+                    ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP
+            };
+
+            String delSelection = ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
+            String[] delSelectionArgs = new String[]{ String.valueOf(lastUpdateTimestamp) };
+            Cursor deleteCursor = getContentResolver().query(
+                    ContactsContract.DeletedContacts.CONTENT_URI,
+                    projection,
+                    delSelection,
+                    delSelectionArgs,
+                    null
+            );
+            Log.d("Deleted values ----->>>", deleteCursor.getCount()+"");
+            if (deleteCursor != null && deleteCursor.moveToFirst()) {
+                do {
+                    // process the deleted contact
+                    @SuppressLint("Range") String contactId = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_ID));
+                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                    @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    newArrList.add(contactId + ":" + name + ":" + phoneNumber);
+                    Log.d("Deleted Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+                } while (deleteCursor.moveToNext());
+                deleteCursor.close();
             }
-
-
 
             loadedTimestamp = System.currentTimeMillis();
             Log.d("", "" + newArrList.size());
