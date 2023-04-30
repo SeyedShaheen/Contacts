@@ -101,32 +101,39 @@ public native void removeFromModel(long ptr, int index);
 
     public void updateContacts(ArrayList<String> updatedList) {
 
-        Log.d("", "updated list size: " + updatedList.size());
-
         ArrayList<String> updatedContactIds = new ArrayList<>();
 
-        for (int i = 0; i < updatedList.size(); i++){
-            String[] elements = updatedList.get(i).split(":");
-            updatedContactIds.add(elements[0]);
-        }
+        Log.d("", "updated list size: " + updatedList.size());
 
-        for (int i = 0; i < updatedList.size(); i++){
-            int idx = initialContactIds.indexOf(updatedContactIds.get(i));
-            String element = updatedList.get(i);
-            Log.d("-->>>", element);
-            Log.d("Index to change :---> ",idx+"");
-            Log.d("Updated contactId :---> ",element+"");
+        if(updatedList.size() > 0){
+            for (int i = 0; i < updatedList.size(); i++){
+                String[] elements = updatedList.get(i).split(":");
+                updatedContactIds.add(elements[0]);
+            }
 
-            if (idx >= 0) {
-                removeFromModel(pointer,idx);
-                update(pointer, element, 0);
-                Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
-                initialContacts.remove(idx);
-                initialContacts.add(0,element);
-            } else if (!initialContacts.contains(element)) {
-                initialContacts.add(0,element);
-                update(pointer, element, 0);
-                Toast.makeText(this, "Added", Toast.LENGTH_SHORT).show();
+            for (int i = 0; i < updatedList.size(); i++){
+                int idx = initialContactIds.indexOf(updatedContactIds.get(i));
+                String element = updatedList.get(i);
+                String[] elementSplit = element.split(":");
+                String contactId = elementSplit[0];
+                Log.d("-->>>", element);
+                Log.d("Index to change :---> ",idx+"");
+                Log.d("Updated contactId :---> ",element+"");
+
+                if (idx >= 0) {
+                    removeFromModel(pointer,idx);
+                    update(pointer, element, 0);
+                    Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
+                    initialContacts.remove(idx);
+                    initialContactIds.remove(idx);
+                    initialContacts.add(0,element);
+                    initialContactIds.add(0, contactId);
+                } else if (!initialContacts.contains(element)) {
+                    initialContacts.add(0,element);
+                    initialContactIds.add(contactId);
+                    update(pointer, element, 0);
+                    Toast.makeText(this, "Added", Toast.LENGTH_SHORT).show();
+                }
             }
         }
 //        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
@@ -193,7 +200,8 @@ public native void removeFromModel(long ptr, int index);
             Log.d("", "Deleted");
             String[] projection = new String[]{
                     ContactsContract.DeletedContacts.CONTACT_ID,
-                    ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP
+//                    ContactsContract.CommonDataKinds.Phone.NUMBER,
+//                    ContactsContract.Contacts.DISPLAY_NAME
             };
 
             String delSelection = ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
@@ -210,10 +218,15 @@ public native void removeFromModel(long ptr, int index);
                 do {
                     // process the deleted contact
                     @SuppressLint("Range") String contactId = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_ID));
-                    @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                    @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    newArrList.add(contactId + ":" + name + ":" + phoneNumber);
-                    Log.d("Deleted Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
+//                    @SuppressLint("Range") String name = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+//                    @SuppressLint("Range") String phoneNumber = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+//                    newArrList.add(contactId + ":" + "deleted" + ":" + "deleted");
+                    int idx = initialContactIds.indexOf(contactId);
+                    removeFromModel(pointer, idx);
+                    initialContacts.remove(idx);
+                    initialContactIds.remove(idx);
+//                    Log.d("Deleted Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + deleteCursor.getCount());
+                    Log.d("Deleted Contacts", "Index: "+ idx  + " ContactID: "+ contactId  + " Total Contacts: " + deleteCursor.getCount());
                 } while (deleteCursor.moveToNext());
                 deleteCursor.close();
             }
