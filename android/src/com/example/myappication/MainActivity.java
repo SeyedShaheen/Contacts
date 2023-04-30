@@ -116,10 +116,16 @@ public native void removeFromModel(long ptr, int index);
             Log.d("-->>>", element);
             Log.d("Index to change :---> ",idx+"");
             Log.d("Updated contactId :---> ",element+"");
-            initialContacts.remove(idx);
-            initialContacts.add(0,element);
-            removeFromModel(pointer,idx);
-            update(pointer, element, 0);
+
+            if (idx >= 0) {
+                initialContacts.remove(idx);
+                initialContacts.add(0,element);
+                removeFromModel(pointer,idx);
+                update(pointer, element, 0);
+            } else {
+                initialContacts.add(0,element);
+                update(pointer, element, 0);
+            }
         }
 
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
