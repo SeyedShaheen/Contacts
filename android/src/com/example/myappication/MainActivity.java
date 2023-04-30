@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 import android.database.ContentObserver;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class MainActivity extends QtActivity {
     private contactsContentObserver contactsContentObserver;
     public long pointer;
     public ArrayList<String> initialContacts;
+    ArrayList<String> initialContactIds = new ArrayList<>();
     public long loadedTimestamp;
 
     @Override
@@ -47,6 +49,10 @@ public class MainActivity extends QtActivity {
         contactsContentObserver = new contactsContentObserver(handler, this);
         getContentResolver().registerContentObserver(ContactsContract.Contacts.CONTENT_URI, true, contactsContentObserver);
         initialContacts = readContacts();
+        for (int i = 0; i < initialContacts.size(); i++){
+            String[] elements = initialContacts.get(i).split(":");
+            initialContactIds.add(elements[0]);
+        }
 //        Log.d("","--------------->>"+readContacts().size());
 //        Log.d("","--------------->>"+initialContacts.size());
 }
@@ -67,23 +73,10 @@ public native void removeFromModel(long ptr, int index);
         }
     }
 
-    public class Contact {
-        private String contactId;
-        private String name;
-        private String phoneNumber;
-
-        public Contact(String contactId, String name, String phoneNumber) {
-            this.contactId = contactId;
-            this.name = name;
-            this.phoneNumber = phoneNumber;
-        }
-    }
-
     public ArrayList<String> readContacts(){
         long tStart = System.currentTimeMillis();
 
         ArrayList<String> contacts = new ArrayList<>();
-        ArrayList<Contact> contactDetails = new ArrayList<>();
         Cursor cursor = getContentResolver().query(
                 ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
                 null, null, null);
@@ -95,38 +88,39 @@ public native void removeFromModel(long ptr, int index);
                 @SuppressLint("Range") String name = ((Cursor) cursor).getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                 @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
                 contacts.add(contactId + ":" + name + ":" + phoneNumber);
-                contactDetails.add(new Contact(contactId,name,phoneNumber));
             }
             cursor.close();
         }
         loadedTimestamp = System.currentTimeMillis();
         long tEnd = System.currentTimeMillis();
         long tDelta = tEnd - tStart;
-        Log.d("Contact",  contactDetails.size()+ " : " + contactDetails.get(1).name + " " + contactDetails.get(1).phoneNumber);
         Log.d("---------> Read Duration: ", tDelta+"");
         return contacts;
     }
 
 
-    public void updateContacts(ArrayList<Contact> updatedList) {
+    public void updateContacts(ArrayList<String> updatedList) {
 
         Log.d("", "updated list size: " + updatedList.size());
 
-        for (int i = 0; i < updatedList.size(); i++){
+        ArrayList<String> updatedContactIds = new ArrayList<>();
 
+        for (int i = 0; i < updatedList.size(); i++){
+            String[] elements = updatedList.get(i).split(":");
+            updatedContactIds.add(elements[0]);
         }
 
-
-//                for (int i = 0; i < initialContacts.size(); i++) {
-//                    String element = initialContacts.get(i);
-//                    if (!updatedList.contains(element)) {
-//                        int itemIndex = initialContacts.indexOf(element);
-//                        Log.d("Removed element:---> ",element);
-//                        Log.d("Removed elements index :---> ",itemIndex+"");
-//                        removeFromModel(pointer,i);
-//                        initialContacts.remove(i);
-//                    }
-//                }
+        for (int i = 0; i < updatedList.size(); i++){
+            int idx = initialContactIds.indexOf(updatedContactIds.get(i));
+            String element = updatedList.get(i);
+            Log.d("-->>>", element);
+            Log.d("Index to change :---> ",idx+"");
+            Log.d("Updated contactId :---> ",element+"");
+            initialContacts.remove(idx);
+            initialContacts.add(0,element);
+            removeFromModel(pointer,idx);
+            update(pointer, element, 0);
+        }
 
         Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
@@ -152,20 +146,10 @@ public native void removeFromModel(long ptr, int index);
             super(handler);
             this.mainActivity = mainActivity;
         }
-//        @Override
-//        public void onChange(boolean selfChange){
-//            super.onChange(selfChange);
-//            long tStart = System.currentTimeMillis();
-//            ArrayList<String> newArrList = readContacts();
-//            updateContacts(newArrList);
-//            long tEnd = System.currentTimeMillis();
-//            long tDelta = tEnd - tStart;
-//            Log.d("---------> Update Duration: ", tDelta+"");
-//        }
 
         @Override
         public void onChange(boolean selfChange, Uri uri, int flags) {
-            ArrayList<Contact> newArrList = new ArrayList<>();
+            ArrayList<String> newArrList = new ArrayList<>();
             Log.d("", "onChange Called");
             long lastUpdateTimestamp = loadedTimestamp; // the timestamp of the last update
             String selection = ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP + " > ?";
@@ -187,31 +171,42 @@ public native void removeFromModel(long ptr, int index);
                     @SuppressLint("Range") String contactId = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID));
                     @SuppressLint("Range") String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
                     @SuppressLint("Range") String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                    newArrList.add(new Contact(contactId, name, phoneNumber));
+                    newArrList.add(contactId + ":" + name + ":" + phoneNumber);
                     Log.d("Updated Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + cursor.getCount());
                 } while (cursor.moveToNext());
                 cursor.close();
             }
             else {
-                // the cursor is empty, which means a contact was deleted
-                long contactId = ContentUris.parseId(uri);
-                Log.d("Deleted Contact", "Contact ID: " + contactId);
+                String[] projection = new String[]{
+                        ContactsContract.DeletedContacts.CONTACT_ID,
+                        ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP
+                };
 
-                Log.d("Updated Contacts", "DELETED");
-                // ...
+                String delSelection = ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
+                String[] delSelectionArgs = new String[]{ String.valueOf(lastUpdateTimestamp) };
+                Cursor deleteCursor = getContentResolver().query(
+                        ContactsContract.DeletedContacts.CONTENT_URI,
+                        projection,
+                        delSelection,
+                        delSelectionArgs,
+                        null
+                );
+                if (deleteCursor != null && deleteCursor.moveToFirst()) {
+                    do {
+                        // process the deleted contact
+                        @SuppressLint("Range") String contactId = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_ID));
+                        @SuppressLint("Range") long deletedTimestamp = deleteCursor.getLong(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP));
+                        Log.d("Deleted Contacts", "ContactID: "+ contactId + ", Deleted Timestamp: " + deletedTimestamp);
+                    } while (deleteCursor.moveToNext());
+                    deleteCursor.close();
+                }
             }
+
+
+
             loadedTimestamp = System.currentTimeMillis();
             Log.d("", "" + newArrList.size());
             updateContacts(newArrList);
         }
-
-
-//        @Override
-//        public void onChange(boolean selfChange, Uri uri){
-//            super.onChange(selfChange, uri);
-//            ArrayList<String> newArrList = readContacts();
-//            updateContacts(newArrList);
-//        }
-
     }
 }
