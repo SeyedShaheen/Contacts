@@ -118,18 +118,20 @@ public native void removeFromModel(long ptr, int index);
             Log.d("Updated contactId :---> ",element+"");
 
             if (idx >= 0) {
-                initialContacts.remove(idx);
-                initialContacts.add(0,element);
                 removeFromModel(pointer,idx);
                 update(pointer, element, 0);
-            } else {
+                Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
+                initialContacts.remove(idx);
+                initialContacts.add(0,element);
+            } else if (!initialContacts.contains(element)) {
                 initialContacts.add(0,element);
                 update(pointer, element, 0);
+                Toast.makeText(this, "Added", Toast.LENGTH_SHORT).show();
             }
         }
-
-        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
