@@ -40,12 +40,19 @@ public:
     QJniObject getArrayList() const;
     void setArrayList(const QJniObject &newArrayList);
 
+    QList<QString> getContactList() const;
+    void setContactList(const QList<QString> &newContactList);
+
 signals:
     void arrayListChanged();
+
+    void contactListChanged();
 
 private:
     QJniObject arrayList;
     Q_PROPERTY(QJniObject arrayList READ getArrayList WRITE setArrayList NOTIFY arrayListChanged)
+    QList<QString> contactList;
+    Q_PROPERTY(QList<QString> contactList READ getContactList WRITE setContactList NOTIFY contactListChanged)
 };
 
 #endif // CONTACTMODEL_H

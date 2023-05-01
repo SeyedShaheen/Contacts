@@ -12,20 +12,38 @@ ContactModel::ContactModel(QObject *parent)
     QJniObject javaClass = QNativeInterface::QAndroidApplication::context();
     arrayList = javaClass.callObjectMethod("readContacts", "()Ljava/util/ArrayList;");
     javaClass.callMethod<void>("setPointer", "(J)V", (long long) (ContactModel*) this);
+
+    const int arrayLength = arrayList.callMethod<jint>("size","()I");
+
+    QList<QString> contactList;
+
+    for (int i = 0; i < arrayLength; ++i)
+    {
+        QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", i);
+        QString qstring = element.toString();
+        contactList.append(qstring);
+
+//        qDebug() << contactList.at(i);
+    }
+
+    setContactList(contactList);
+
+//    qDebug() << contactList.size();
 }
 
 void ContactModel::addNewContact(int index, QString value)
 {
     beginInsertRows(QModelIndex(), index, index);
     QJniObject javaString = QJniObject::fromString(value);
-    arrayList.callMethod<void>("add", "(ILjava/lang/Object;)V", 0, javaString.object());
+    qDebug() << javaString.toString();
+    contactList.insert(index, javaString.toString());
     endInsertRows();
 }
 
 void ContactModel::removeContact(int index)
 {
     beginRemoveRows(QModelIndex(), index,index);
-    arrayList.callObjectMethod("remove", "(I)Ljava/lang/Object;", index);
+    contactList.removeAt(index);
     endRemoveRows();
 }
 
@@ -60,20 +78,20 @@ int ContactModel::rowCount(const QModelIndex &parent) const
     if (parent.isValid())
         return 0;
     // FIXME: Implement me!
-    return (int)arrayList.callMethod<jint>("size","()I");
+    return (int)contactList.size();
+    //return (int)arrayList.callMethod<jint>("size","()I");
 }
 
 QVariant ContactModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid())
+    if (!index.isValid() || index.row() < 0 || index.row() >= contactList.size())
         return QVariant();
 
-    // FIXME: Implement me!
-    QJniObject element = arrayList.callObjectMethod("get", "(I)Ljava/lang/Object;", index);
-    QString qstring = element.toString();
+    // Get contact information using index (row) from contactList
+    QString qstring = contactList.at(index.row());
     QStringList contactInfo = qstring.split(":");
 
-    //qDebug()<< qstring;
+    qDebug() << contactList.size();
 
     switch (role){
     case Name:
@@ -81,7 +99,7 @@ QVariant ContactModel::data(const QModelIndex &index, int role) const
     case Number:
         return QVariant((contactInfo[2]));
     }
-     return QVariant();
+    return QVariant();
 }
 
 bool ContactModel::setData(const QModelIndex &index, const QVariant &value, int role)
@@ -121,5 +139,18 @@ void ContactModel::setArrayList(const QJniObject &newArrayList)
         return;
     arrayList = newArrayList;
     emit arrayListChanged();
+}
+
+QList<QString> ContactModel::getContactList() const
+{
+    return contactList;
+}
+
+void ContactModel::setContactList(const QList<QString> &newContactList)
+{
+    if (contactList == newContactList)
+        return;
+    contactList = newContactList;
+    emit contactListChanged();
 }
 

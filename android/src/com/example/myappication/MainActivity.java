@@ -18,10 +18,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
-//import androidx.annotation.NonNull;
 import org.qtproject.qt.android.bindings.QtActivity;
-//import androidx.core.app.ActivityCompat;
-//import androidx.core.content.ContextCompat;
 
 public class MainActivity extends QtActivity {
 
@@ -53,8 +50,6 @@ public class MainActivity extends QtActivity {
             String[] elements = initialContacts.get(i).split(":");
             initialContactIds.add(elements[0]);
         }
-//        Log.d("","--------------->>"+readContacts().size());
-//        Log.d("","--------------->>"+initialContacts.size());
 }
 
 void setPointer(long ptr){
@@ -136,7 +131,6 @@ public native void removeFromModel(long ptr, int index);
                 }
             }
         }
-//        Toast.makeText(this, "Updated", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -200,8 +194,6 @@ public native void removeFromModel(long ptr, int index);
             Log.d("", "Deleted");
             String[] projection = new String[]{
                     ContactsContract.DeletedContacts.CONTACT_ID,
-//                    ContactsContract.CommonDataKinds.Phone.NUMBER,
-//                    ContactsContract.Contacts.DISPLAY_NAME
             };
 
             String delSelection = ContactsContract.DeletedContacts.CONTACT_DELETED_TIMESTAMP + " > ?";
@@ -218,14 +210,10 @@ public native void removeFromModel(long ptr, int index);
                 do {
                     // process the deleted contact
                     @SuppressLint("Range") String contactId = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.DeletedContacts.CONTACT_ID));
-//                    @SuppressLint("Range") String name = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-//                    @SuppressLint("Range") String phoneNumber = deleteCursor.getString(deleteCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-//                    newArrList.add(contactId + ":" + "deleted" + ":" + "deleted");
                     int idx = initialContactIds.indexOf(contactId);
                     removeFromModel(pointer, idx);
                     initialContacts.remove(idx);
                     initialContactIds.remove(idx);
-//                    Log.d("Deleted Contacts", "ContactID: "+ contactId +", Name: " + name + ", Phone Number: " + phoneNumber + " " + "Total Contacts: " + deleteCursor.getCount());
                     Log.d("Deleted Contacts", "Index: "+ idx  + " ContactID: "+ contactId  + " Total Contacts: " + deleteCursor.getCount());
                 } while (deleteCursor.moveToNext());
                 deleteCursor.close();
